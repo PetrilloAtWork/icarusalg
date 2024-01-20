@@ -13,6 +13,8 @@
 
 // ICARUS libraries
 #include "icarusalg/Utilities/TimeInterval.h"
+#include "lardataalg/Utilities/intervals_fhicl.h" // convenience
+#include "lardataalg/Utilities/quantities_fhicl.h" // convenience
 
 // framework libraries
 #include "fhiclcpp/types/OptionalTable.h"
@@ -27,26 +29,57 @@
 //--------------------------------------------------------------------------
 namespace icarus::ns::fhicl {
   
+  /**
+   * @brief FHiCL configuration for a `icarus::ns::util::TimeInterval` object.
+   * @tparam Time type of time the interval object uses
+   * @see `icarus::ns::fhicl::TimeIntervalTable`,
+   *      `icarus::ns::fhicl::TimeIntervalOptionalTable`
+   * 
+   * Objects from this class can be included in the validated FHiCL
+   * configuration objects. See `icarus::ns::fhicl::TimeIntervalTable`
+   * and `icarus::ns::fhicl::TimeIntervalOptionalTable` for usage examples.
+   */
   template <typename Time> struct TimeIntervalConfig;
   
+  /**
+   * @brief Extracts a `icarus::ns::util::TimeInterval` value from a FHiCL
+   *        configuration.
+   * @tparam Time type of time the interval object uses
+   * @param config the FHiCL configuration to read the interval from
+   * @return an interval object
+   * @see `icarus::ns::fhicl::TimeIntervalTable`
+   * 
+   * See `icarus::ns::fhicl::TimeIntervalTable` for an usage example.
+   */
   template <typename Time>
   icarus::ns::util::TimeInterval<Time> makeTimeInterval
     (TimeIntervalConfig<Time> const& config);
   
+  /**
+   * @brief Extracts a `icarus::ns::util::TimeInterval` value from an optional
+   *        FHiCL configuration.
+   * @tparam Time type of time the interval object uses
+   * @param config the optional FHiCL configuration to read the interval from
+   * @return an optional interval object, `std::nullopt` if not in `config`
+   * @see `icarus::ns::fhicl::TimeIntervalOptionalTable`
+   * 
+   * This object can also be used as a way to supply a default value to a
+   * `icarus::ns::util::TimeInterval` parameter.
+   * See `icarus::ns::fhicl::TimeIntervalOptionalTable` for an usage example.
+   */
   template <typename Time>
   std::optional<icarus::ns::util::TimeInterval<Time>> makeTimeInterval
     (std::optional<TimeIntervalConfig<Time>> const& config);
   
   /**
-   * @brief FHiCL optional configuration object for specification of a (time)
-   *        interval.
+   * @brief FHiCL configuration object for specification of a (time) interval.
    * @tparam Time the type of the time point being read by the configuration
    * @see `icarus::ns::fhicl::TimeIntervalConfig`
    * 
-   * This is a handy alias for a FHiCL configuration with an optional
+   * This is a handy alias for a FHiCL configuration with a
    * `icarus::ns::fhicl::TimeIntervalConfig` entry.
-   * Note that since FHiCL tables do not support default values, this is the
-   * way to have one (see `icarus::ns::fhicl::TimeIntervalConfig` example).
+   * Note that FHiCL tables do not support default values, and to get something
+   * similar to it `TimeIntervalOptionalTable` can be used instead.
    * 
    * Use it like in the FHiCL configuration object of an algorithm or module:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
@@ -66,6 +99,47 @@ namespace icarus::ns::fhicl {
    *   
    * };
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * 
+   * It can be read for example in the constructor of a class (e.g. a module):
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * class MyAlgorithm {
+   * 
+   *     public:
+   *   
+   *   using electronics_time = detinfo::timescales::electronics_time;
+   *   
+   *   struct Config {
+   *     
+   *     using Name = fhicl::Name;
+   *     using Comment = fhicl::Comment;
+   *     
+   *     icarus::ns::fhicl::TimeIntervalTable<electronics_time> Interval{
+   *       Name{ "Interval" },
+   *       Comment{ "specify the selection time interval" }
+   *       };
+   *     
+   *   };
+   *   
+   *   using Parameters = fhicl::Table<Config>;
+   *   
+   *   MyAlgorithm(Parameters const& params)
+   *     : fInterval
+   *       { icarus::ns::fhicl::makeTimeInterval(params().Interval()) }
+   *     {
+   *       mf::LogInfo{ "MyAlgorithm" } << "Time interval: " << fInterval;
+   *     }
+   *   
+   *     private:
+   *   icarus::ns::util::TimeInterval<electronics_time> fInterval;
+   *   
+   * };
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * with a FHiCL configuration like:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * myalgorithm: {
+   *   Interval: { Start: "-5 us"  Duration: "+20 us" }
+   * }
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
   template <typename Time>
   using TimeIntervalTable = ::fhicl::Table<TimeIntervalConfig<Time>> ;
@@ -79,7 +153,7 @@ namespace icarus::ns::fhicl {
    * This is a handy alias for a FHiCL configuration with an optional
    * `icarus::ns::fhicl::TimeIntervalConfig` entry.
    * Note that since FHiCL tables do not support default values, this is the
-   * way to have one (see `icarus::ns::fhicl::TimeIntervalConfig` example).
+   * way to have one.
    * 
    * Use it like in the FHiCL configuration object of an algorithm or module:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
@@ -99,11 +173,69 @@ namespace icarus::ns::fhicl {
    *   
    * };
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * 
+   * It can be read for example in the constructor of a class (e.g. a module):
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * using namespace util::quantities::time_literals; // for `200_ns` etc.
+   * 
+   * class MyAlgorithm {
+   * 
+   *     public:
+   *   using nanosecond = util::quantities::points::nanosecond;
+   *   
+   *   struct Config {
+   *     
+   *     using Name = fhicl::Name;
+   *     using Comment = fhicl::Comment;
+   *     
+   *     icarus::ns::fhicl::TimeIntervalOptionalTable<nanosecond> Interval{
+   *       Name{ "Interval" },
+   *       Comment{ "override the selection time interval" }
+   *       };
+   *     
+   *   };
+   *   
+   *   using Parameters = fhicl::Table<Config>;
+   *   
+   *   MyAlgorithm(Parameters const& params)
+   *     : fInterval
+   *       {
+   *         icarus::ns::fhicl::makeTimeInterval(params().Interval())
+   *           .value_or(DefaultInterval)
+   *       }
+   *     {
+   *       mf::LogInfo{ "MyAlgorithm" } << "Time interval: " << fInterval;
+   *     }
+   *   
+   *     private:
+   *   icarus::ns::util::TimeInterval<nanosecond> fInterval;
+   *   
+   *   static constexpr icarus::ns::util::TimeInterval<nanosecond>
+   *     DefaultInterval{ -100_ns, +200_ns};
+   * };
+   * 
+   * inline constexpr icarus::ns::util::TimeInterval<util::quantities::points::nanosecond>
+   *   MyAlgorithm::DefaultInterval{ -100_ns, +200_ns};
+   * 
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * with a FHiCL configuration like:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * myalgorithm: {
+   *   Interval: { Start: "-5 us"  Duration: "+20 us" }
+   * }
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * or it can be omitted altogether:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * myalgorithm: {
+   * }
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * (_not_ the same as specifying `Interval: {}`, which will yield an empty
+   * `[ 0, 0 ]` interval).
    */
   template <typename Time>
   using TimeIntervalOptionalTable
     = ::fhicl::OptionalTable<TimeIntervalConfig<Time>>;
-    
+  
 } // namespace icarus::ns::fhicl
 
 
@@ -111,9 +243,26 @@ namespace icarus::ns::fhicl {
 /**
  * @brief FHiCL configuration object for specification of a (time) interval.
  * @tparam Time the type of the time point being read by the configuration
+ * @see `icarus::ns::fhicl::TimeIntervalTable`,
+ *      `icarus::ns::fhicl::TimeIntervalOptionalTable`
  * 
+ * See `icarus::ns::fhicl::TimeIntervalTable` and
+ * `icarus::ns::fhicl::TimeIntervalOptionalTable` for complete example usages.
  * 
+ * Examples of configuration:
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * intervalA: {  Start: "-5 us"  Duration: "15 us"  }  # [ -5 ; +10 ] us
+ * intervalB: {  Start: "-5 us"  End: "10 us"  }       # [ -5 ; +10 ] us
+ * intervalC: {  Duration: "15 us"  End: "10 us"  }    # [ -5 ; +10 ] us
+ * intervalD: {  Duration: "200 ns"  }                 # [  0 ; +0.2 ] us
+ * intervalE: {  End: "200 ns"  }                      # [  0 ; +0.2 ] us
+ * intervalF: {  }                                     # [  0 ; 0 ]
  * 
+ * # this (valid FHiCL) would not parse with `makeTimeInterval()` helpers:
+ * # intervalG: {  Start: "-5 us"  Duration: "15 us"  End: "10 us"  }
+ * 
+ * }
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 template <typename Time> 
 struct icarus::ns::fhicl::TimeIntervalConfig {

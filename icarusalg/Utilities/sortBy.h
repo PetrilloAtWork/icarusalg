@@ -16,7 +16,7 @@
 #include <functional> // std::less<>
 #include <vector>
 #include <iterator> // std::back_inserter()
-#include <utility> // std::pair>?
+#include <utility> // std::pair<>
 #include <type_traits> // std::is_base_of_v
 
 
@@ -30,7 +30,8 @@ namespace util {
    * @tparam EIter type of end iterator to objects to be sorted
    * @tparam Key type of functor extracting the key from an element
    * @tparam Sorter (default: `std::less`) type of functor comparing two keys
-   * @param coll collection of objects to be sorted
+   * @param begin iterator to the first element of the collection to be sorted
+   * @param end iterator after the last element of the collection to be sorted
    * @param key functor extracting the key from an element
    * @param sorter (default: `std::less{}`) functor comparing two keys
    * @return a vector of pointers to `coll` elements, sorted by `key`

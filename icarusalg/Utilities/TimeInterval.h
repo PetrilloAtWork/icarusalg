@@ -17,7 +17,7 @@
 #include <cstddef> // std::size_t
 
 
-//--------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 namespace icarus::ns::util {
   template <typename Time> struct TimeInterval;
   
@@ -42,7 +42,7 @@ namespace icarus::ns::util {
 } // namespace icarus::ns::util
 
 
-//--------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /**
  * @brief Simple time interval, a `start` and a `stop` (of type `T`).
  * @tparam Time type of time for the interval
@@ -71,9 +71,7 @@ struct icarus::ns::util::TimeInterval {
   /// @{
   
   /// Constructor: an empty interval.
-  TimeInterval() = default;
-  
-  TimeInterval(TimeInterval const&) = default;
+  constexpr TimeInterval() = default;
   
   /// Constructor: sets an empty interval starting at `start` time.
   constexpr TimeInterval(Time_t start): TimeInterval{ start, start } {}
