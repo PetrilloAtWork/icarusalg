@@ -241,10 +241,14 @@ namespace fhicl {
     using default_type = T;
     using value_type = T;
 
+    /// Interface extensions: returns a selector associated to `T`.
+    static ::util::StandardSelectorFor<T> const& selector()
+      { return selector_; }
+    
   private:
     value_type value_{};
 
-    static ::util::StandardSelectorFor<T> const selector;
+    static ::util::StandardSelectorFor<T> const selector_;
     
     SelectorAtom(
       Name&& name, Comment&& comment, par_style const vt,
@@ -322,7 +326,7 @@ util::details::decodeEnumClassToFHiCL(std::any const& src, EnumClass& value) {
 // ---  fhicl::SelectorAtom<>
 // -----------------------------------------------------------------------------
 template <typename T>
-util::StandardSelectorFor<T> const fhicl::SelectorAtom<T>::selector;
+util::StandardSelectorFor<T> const fhicl::SelectorAtom<T>::selector_;
 
 // -----------------------------------------------------------------------------
 template <typename T>
@@ -381,7 +385,7 @@ fhicl::SelectorAtom<T>::SelectorAtom(Name&& name, T const& dflt_value)
 template <typename T>
 std::string fhicl::SelectorAtom<T>::get_stringified_value() const {
   return has_default()
-    ? selector.get(value_).name()
+    ? selector().get(value_).name()
     : detail::no_defaults::expected_types<T>{}.value
     ;
 }
