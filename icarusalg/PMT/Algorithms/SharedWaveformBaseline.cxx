@@ -218,11 +218,12 @@ auto opdet::SharedWaveformBaseline::operator()
     
   } // for
   
+  // `StatCollector::Average()` will throw an exception if no baselines
   return {
-      stats.Average()           // baseline
-    , medRMS                    // RMS
-    , nUsedWaveforms            // nWaveforms
-    , (unsigned int) stats.N()  // nSamples
+      (stats.N() > 0)? stats.Average(): BaselineInfo_t::NoInfo // baseline
+    , medRMS                                                   // RMS
+    , nUsedWaveforms                                           // nWaveforms
+    , (unsigned int) stats.N()                                 // nSamples
     };
   
 } // opdet::SharedWaveformBaseline::operator()
