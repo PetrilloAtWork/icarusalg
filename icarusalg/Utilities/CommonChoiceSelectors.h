@@ -91,6 +91,7 @@ namespace fhicl {
 // --- END ----- util::TimeScale -----------------------------------------------
 // -----------------------------------------------------------------------------
 
+
 // -----------------------------------------------------------------------------
 // --- BEGIN --- sbn::BeamType -------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -154,5 +155,67 @@ namespace fhicl {
 
 // --- END ----- sbn::BeamType -----------------------------------------------
 // -----------------------------------------------------------------------------
+
+
+// -----------------------------------------------------------------------------
+// --- BEGIN --- util::SignalPolarity ------------------------------------------
+// -----------------------------------------------------------------------------
+/// @name util::SignalPolarity
+/// @{
+
+namespace util {
+  
+  /**
+   * @brief Expresses the polarity of an analog signal.
+   * 
+   * This enumerator lists possible signal polarities for use in the code and in
+   * configuration (see `util::SignalPolaritySelector`).
+   * 
+   */
+  enum class SignalPolarity: int {
+    Negative = -1, ///< Stronger signals develop with more negative voltages.
+    Positive = +1, ///< Stronger signals develop with more positive voltages.
+    
+    UnknownPolarity ///< Unknown or unspecified polarity.
+  }; // SignalPolarity
+  
+  
+  // ---------------------------------------------------------------------------
+  /// Helper for generic encoding of `SignalPolarity` enumerator in FHiCL.
+  ::fhicl::detail::ps_atom_t encode(SignalPolarity const& value);
+
+  /// Helper for generic deecoding of `SignalPolarity` enumerator in FHiCL.
+  void decode(std::any const& src, SignalPolarity& value);
+  
+  // ---------------------------------------------------------------------------
+  /// Selector for `util::SignalPolarity` enumerator (template specialization).
+  template <>
+  struct StandardSelectorFor<SignalPolarity> // standard: `Tag` == `0`
+    : public MultipleChoiceSelection<util::SignalPolarity>
+  {
+    /// Constructor: initializes with some appropriate strings.
+    StandardSelectorFor();
+  }; // StandardSelectorFor<SignalPolarity>
+  
+  // ---------------------------------------------------------------------------
+  
+} // util
+
+namespace fhicl {
+  
+  /// Specialization of fhicl::Atom<>
+  template <>
+  struct Atom<::util::SignalPolarity>: SelectorAtom<::util::SignalPolarity> {
+    using SelectorAtom<::util::SignalPolarity>::SelectorAtom;
+  };
+  
+}
+
+
+/// @}
+
+// --- END ----- util::SignalPolarity  -----------------------------------------
+// -----------------------------------------------------------------------------
+
 
 #endif // ICARUSCODE_UTILITIES_COMMONCHOICESELECTORS_H
