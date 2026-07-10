@@ -376,7 +376,7 @@ auto BaselineEstimatorFromWaveformStart::estimate
   
   std::vector<double> const data { waveform.begin(), waveform.end() };
 
-  std::size_t nSamples = std::min(fConfig.nSamples, data.size());
+  std::size_t nSamples = std::min<std::size_t>(fConfig.nSamples, data.size());
   assert(nSamples > 0);
   
   auto const start = data.begin();
